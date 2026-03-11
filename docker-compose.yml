@@ -1,0 +1,29 @@
+networks:
+  dev:
+  
+services:
+  atis:
+    image: ghcr.io/metramak/atis_ulll:latest
+    container_name: atis
+    restart: unless-stopped
+    volumes:
+      - ./data/config.json:/app/config.json
+    environment:
+      - TZ=Europe/Moscow
+    networks:
+      - dev
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/atis.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - atis
+    networks:
+      - dev

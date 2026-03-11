@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/static/favicon.ico"
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="pg-title">ULLI ATIS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:   #080d14;
+  --s1:   #0c1420;
+  --s2:   #101b28;
+  --s3:   #152030;
+  --b1:   #1e3048;
+  --b2:   #264060;
+  --cyan: #38c8f0;
+  --cyan2:#1a8fb8;
+  --cyan3:#0d4a62;
+  --cyan4:#061c26;
+  --text: #c8dcea;
+  --dim:  #5a7a94;
+  --mute: #2a4055;
+  --gold: #f0c060;
+  --gold2:#c08020;
+  --red:  #e05050;
+  --grn:  #50d090;
+  --sans: 'Rajdhani', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 100vh;
+  /* Subtle noise texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(180deg, var(--s2) 0%, var(--s1) 100%);
+  border-bottom: 1px solid var(--b1);
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 24px rgba(0,0,0,.5);
+}
+
+.h-brand {
+  display: flex; align-items: baseline; gap: 10px;
+  padding-right: 24px;
+  border-right: 1px solid var(--b1);
+  width: 140px;
+}
+.h-icao {
+  font-family: var(--sans);
+  font-size: 24px; font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  line-height: 1;
+}
+.h-label {
+  font-size: 11px; letter-spacing: 2px;
+  color: var(--dim); text-transform: uppercase;
+}
+
+.h-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.save-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--dim); }
+.sdot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--mute); transition: all .3s;
+}
+.sdot.saved  { background: var(--grn); box-shadow: 0 0 8px var(--grn); }
+.sdot.saving { background: var(--gold); animation: sb .7s infinite; }
+.sdot.error  { background: var(--red); }
+#stxt.saved  { color: var(--grn); }
+#stxt.saving { color: var(--gold); }
+#stxt.error  { color: var(--red); }
+@keyframes sb{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── LAYOUT ── */
+.page { max-width: 1000px; margin: 0 auto; padding: 20px 24px 64px; display: flex; flex-direction: column; gap: 10px; }
+
+.row { display: grid; gap: 10px; }
+.r3  { grid-template-columns: 1fr 1fr 1fr; }
+.r2  { grid-template-columns: 1fr 1fr; }
+
+/* ── CARD ── */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.card-head {
+  padding: 8px 14px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title {
+  font-family: var(--sans);
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim);
+}
+.card-tag {
+  font-size: 10px; letter-spacing: 1px;
+  color: var(--mute);
+}
+
+.card-body { padding: 14px; }
+
+/* ── FORM ── */
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+
+.lbl {
+  display: block; font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--b1); border-radius: 2px;
+  color: var(--text); font-family: var(--mono); font-size: 13px;
+  padding: 8px 10px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+input::placeholder, textarea::placeholder { color: var(--mute); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--cyan2);
+  box-shadow: 0 0 0 2px rgba(56,200,240,.08);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%231e3048'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 28px; cursor: pointer;
+}
+select option { background: #0c1420; color: #c8dcea; }
+textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+
+/* ── TL ── */
+.tl-hint { font-size: 10px; color: var(--mute); margin-top: 6px; letter-spacing: .3px; }
+
+/* ── AIRPORT NAV ── */
+.h-airports {
+  display: flex; align-items: stretch;
+  gap: 2px; padding: 0 20px;
+  border-right: 1px solid var(--b1);
+  height: 100%;
+}
+.ap-tab {
+  display: flex; align-items: center; padding: 0 14px;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  letter-spacing: 2px; color: var(--dim);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all .15s; user-select: none;
+  position: relative; top: 1px;
+}
+.ap-tab:hover { color: var(--text); }
+.ap-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+/* ── FLAGS ── */
+.flags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.flag { width: 90px; }
+
+.flag {
+  background: var(--bg); border: 1px solid var(--b1);
+  border-radius: 2px; padding: 10px 6px;
+  cursor: pointer; user-select: none;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  transition: all .15s; font-family: var(--mono);
+  color: var(--dim); position: relative; overflow: hidden;
+}
+.flag::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: transparent; transition: background .15s;
+}
+.flag:hover { border-color: var(--b2); color: var(--text); }
+.flag.on { background: rgba(56,200,240,.05); border-color: var(--cyan2); color: var(--cyan); }
+.flag.on::before { background: var(--cyan); }
+
+.f-icon { font-size: 15px; }
+.f-lbl  { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; text-align: center; line-height: 1.3; }
+.f-state{ font-size: 9px; letter-spacing: 1px; color: var(--mute); margin-top: auto; }
+.flag.on .f-state { color: var(--cyan2); }
+.flag.disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+/* ── VATIS PANEL ── */
+.vatis-body {
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.vatis-section-title {
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 6px;
+}
+.vatis-instructions {
+  font-size: 12px; line-height: 1.7; color: var(--text);
+  background: var(--bg); border: 1px solid var(--b1);
+  border-radius: 2px; padding: 12px 14px;
+}
+.vatis-instructions ol { padding-left: 18px; }
+.vatis-instructions li { margin-bottom: 4px; }
+.vatis-instructions code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--s3); border: 1px solid var(--b1);
+  border-radius: 2px; padding: 1px 5px; color: var(--cyan);
+}
+
+/* ── URLS ── */
+.url-tabs { display: flex; border-bottom: 1px solid var(--b1); }
+.url-tab {
+  padding: 9px 20px; font-family: var(--sans);
+  font-size: 12px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--dim);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all .15s;
+}
+.url-tab:hover { color: var(--text); }
+.url-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+.url-panels { padding: 14px; }
+.url-panel { display: none; flex-direction: column; gap: 8px; }
+.url-panel.active { display: flex; }
+
+.url-meta { font-size: 11px; color: var(--dim); letter-spacing: .5px; }
+
+.url-box {
+  background: var(--bg); border: 1px solid var(--b1);
+  border-radius: 2px; padding: 9px 12px;
+  font-size: 11px; line-height: 1.9; word-break: break-all;
+}
+.uk { color: #7ec8e8; }
+.uv { color: var(--cyan); }
+.ud { color: var(--dim); }
+
+.url-actions { display: flex; gap: 8px; align-items: center; }
+
+.cbtn {
+  background: transparent;
+  padding: 7px 18px;
+  font-family: var(--sans); font-size: 13px;
+  font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; transition: all .15s; border-radius: 2px;
+}
+.cbtn-primary {
+  border: 1px solid var(--cyan2); color: var(--cyan);
+}
+.cbtn-primary:hover { background: rgba(56,200,240,.08); box-shadow: 0 0 12px rgba(56,200,240,.15); }
+.cbtn-amber {
+  border: 1px solid var(--gold2); color: var(--gold);
+}
+.cbtn-amber:hover { background: rgba(240,192,96,.06); }
+.cbtn-muted {
+  border: 1px solid var(--b2); color: var(--dim);
+}
+.cbtn-muted:hover { border-color: var(--b2); color: var(--text); }
+.cbtn.done { opacity: .4; pointer-events: none; }
+
+.url-note {
+  font-size: 11px; color: var(--mute); letter-spacing: .3px;
+  padding: 6px 10px; border-left: 2px solid var(--b1);
+}
+
+/* ── FOOTER ── */
+footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--s1); border-top: 1px solid var(--b1);
+  padding: 9px 28px;
+  display: flex; align-items: center; gap: 16px;
+  font-size: 11px; color: var(--dim); letter-spacing: 1px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+}
+.f-brand { font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 2px; color: var(--cyan); width: 80px;}
+.f-sep { color: var(--mute); }
+.f-live { color: var(--grn); display: flex; align-items: center; gap: 6px; }
+.f-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--grn); animation: fp 2s infinite; }
+@keyframes fp{0%,100%{opacity:1}50%{opacity:.3}}
+.f-r { margin-left: auto; color: var(--mute); }
+
+@media(max-width:800px){
+  .r3,.r2{grid-template-columns:1fr}
+  .flags{grid-template-columns:repeat(3,1fr)}
+  .page{padding:14px 14px 64px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-brand">
+    <span class="h-icao" id="h-icao">ULLI</span>
+    <span class="h-label">ATIS</span>
+  </div>
+  <div class="h-airports" id="ap-nav"></div>
+
+  <div class="h-right">
+    <div class="save-row">
+      <span class="sdot" id="sdot"></span>
+      <span id="stxt">синхронизировано</span>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="row r3">
+
+    <!-- Заход -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Заход</span>
+        <span class="card-tag">APPROACH</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label class="lbl">Тип</label>
+          <select id="app" onchange="autoSave()">
+            <option value="ILS">ILS</option>
+            <option value="NDB">NDB</option>
+            <option value="VOR">VOR</option>
+            <option value="RNP">RNP</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Одновременные заходы</label>
+          <select id="simult" onchange="autoSave()">
+            <option value="">не используется</option>
+            <option value="dep">Зависимые</option>
+            <option value="indep">Независимые</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- TL -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Эшелон перехода</span>
+        <span class="card-tag">TL</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label class="lbl">Пусто = АВТО</label>
+          <input type="text" id="tl" placeholder="AUTO" maxlength="3" oninput="autoSave()">
+        </div>
+        <div class="field">
+          <label class="lbl">Частота после вылета</label>
+          <input type="text" id="dep_freq" placeholder="120.300" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Закрытия -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Закрытия</span>
+        <span class="card-tag">NOTAM</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label class="lbl">ВПП</label>
+          <input type="text" id="closed_rwy" placeholder="28R/10L" oninput="this.value=this.value.toUpperCase();autoSave()">
+        </div>
+        <div class="field">
+          <label class="lbl">РД</label>
+          <input type="text" id="closed_twy" placeholder="A" oninput="this.value=this.value.toUpperCase();autoSave()">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NOTAM флаги -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Условия</span>
+      <span class="card-tag">ATIS FLAGS</span>
+    </div>
+    <div class="card-body">
+      <div class="flags" id="flags-grid"></div>
+    </div>
+  </div>
+
+  <!-- Remarks -->
+  <div class="row r2">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Remarks</span></div>
+      <div class="card-body">
+        <textarea id="remarks" placeholder="ILS U/S 28L. EXPECT VECTORS..." oninput="autoSave()"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Free text</span></div>
+      <div class="card-body">
+        <textarea id="freetext" placeholder="SOME TEXT HERE..." oninput="autoSave()"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- URLs с табами -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Ссылки</span>
+      <span class="card-tag">EuroScope · vATIS</span>
+    </div>
+    <div class="url-tabs">
+      <div class="url-tab active" onclick="switchTab('vatis',this)">✈ vATIS</div>
+      <div class="url-tab" onclick="switchTab('es',this)">🛰 EuroScope</div>
+    </div>
+    <div class="url-panels">
+
+      <div class="url-panel" id="tab-es">
+        <div class="url-meta">METAR с aviationweather.gov / VATSIM · автообновление</div>
+        <div class="url-box" id="url-es">—</div>
+        <div class="url-actions">
+          <button class="cbtn cbtn-muted" id="btn-es" onclick="copyURL('es')">⎘ Копировать</button>
+          <span class="url-note">Вставить в EuroScope → ATIS → ATIS URL </span>
+        </div>
+      </div>
+
+      <div class="url-panel active" id="tab-vatis">
+        <div class="vatis-body" id="vatis-content">
+          <!-- Контент заполняется ниже -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span class="f-brand" id="f-brand">ULLI ATIS</span>
+  <span class="f-live"><span class="f-live-dot"></span><span id="f-st">READY</span></span>
+  <span class="f-r">v1.0</span>
+</footer>
+
+<script>
+const BASE = window.location.origin;
+
+/* ══ AIRPORTS ══ */
+const AIRPORTS = [
+  { icao:'ULLI', name:'Пулково',    arr:'28L', dep:'28R' },
+  { icao:'UMKK', name:'Калининград',arr:'06',  dep:'06'  },
+  { icao:'ULAA', name:'Архангельск',arr:'02',  dep:'02'  },
+  { icao:'ULMM', name:'Мурманск',   arr:'13',  dep:'13'  },
+  { icao:'UUYY', name:'Сыктывкар', arr:'02',  dep:'02'  },
+];
+// Флаги только для ULLI
+
+let curICAO = 'ULLI';
+
+function buildApNav() {
+  const nav = document.getElementById('ap-nav');
+  nav.innerHTML = '';
+  AIRPORTS.forEach(ap => {
+    const t = document.createElement('div');
+    t.className = 'ap-tab' + (ap.icao === curICAO ? ' active' : '');
+    t.textContent = ap.icao;
+    t.title = ap.name;
+    t.onclick = () => switchAirport(ap.icao);
+    nav.appendChild(t);
+  });
+}
+
+function switchAirport(icao) {
+  curICAO = icao;
+  // Обновляем заголовки
+  document.getElementById('h-icao').textContent = icao;
+  document.getElementById('pg-title').textContent = icao + ' ATIS';
+  document.getElementById('f-brand').textContent = icao + ' ATIS';
+  buildApNav();
+  loadConfig();
+}
+
+/* ══ FLAGS ══ */
+const FLAGS = [
+  {id:'lvp',          icon:'🌫', label:'LVP'},
+  {id:'birds',        icon:'🐦', label:'Birds'},
+  {id:'slippery',     icon:'❄️', label:'Slippery'},
+  {id:'reduced_min',  icon:'👁',  label:'Reduced\nmin',    ulliOnly:true},
+  {id:'segregated',   icon:'↔',  label:'Segregated',       ulliOnly:true},
+  {id:'min_rwy_occup',icon:'⏱', label:'Min RWY\noccup',  ulliOnly:true},
+];
+const fs = {};
+FLAGS.forEach(f => fs[f.id] = false);
+
+
+
+function buildFlags() {
+  const g = document.getElementById('flags-grid');
+  g.innerHTML = '';
+  FLAGS.forEach(f => {
+    const avail = !f.ulliOnly || curICAO === 'ULLI';
+    const on = avail && fs[f.id];
+    const b = document.createElement('button');
+    b.className = 'flag' + (on ? ' on' : '') + (!avail ? ' disabled' : '');
+    b.disabled = !avail;
+    b.innerHTML = `<span class="f-icon">${f.icon}</span><span class="f-lbl">${f.label.replace('\n','<br>')}</span><span class="f-state">${!avail ? 'N/A' : on ? 'ACTIVE' : 'OFF'}</span>`;
+    if (avail) b.onclick = () => { fs[f.id] = !on; buildFlags(); autoSave(); };
+    g.appendChild(b);
+  });
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.url-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.url-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function get(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function enc(v)  { return encodeURIComponent(v).replace(/%24/g,'$').replace(/%28/g,'(').replace(/%29/g,')'); }
+
+function buildCfg() {
+  const cfg = {
+    icao:curICAO, pressure:'QNH',
+    app:get('app')||'ILS', tl:get('tl'),
+    lvp:fs.lvp, birds:fs.birds, slippery:fs.slippery,
+    reduced_min: curICAO==='ULLI' ? fs.reduced_min   : false,
+    segregated:  curICAO==='ULLI' ? fs.segregated    : false,
+    min_rwy_occup: curICAO==='ULLI' ? fs.min_rwy_occup : false,
+    closed_rwy:get('closed_rwy'), closed_twy:get('closed_twy'),
+    simult:get('simult'), dep_freq:get('dep_freq'),
+    remarks:get('remarks'), freetext:get('freetext'),
+  };
+  return cfg;
+}
+
+const eURL = () => `${BASE}/es?icao=${enc('$atisairport')}&arr=${enc('$arrrwy($atisairport)')}&dep=${enc('$deprwy($atisairport)')}&info=${enc('$atiscode')}`;
+
+function rURL(url) {
+  const [base,qs] = url.split('?');
+  let h = `<span class="ud">${base}?</span>`;
+  if (qs) h += qs.split('&').map(p => {
+    const i = p.indexOf('=');
+    return `<span class="uk">${p.slice(0,i)}</span><span class="ud">=</span><span class="uv">${p.slice(i+1)}</span>`;
+  }).join('<span class="ud">&amp;</span>');
+  return h;
+}
+
+function updateURLs() {
+  document.getElementById('url-es').innerHTML = rURL(eURL());
+  buildVatisPanel();
+  //const app = get('app') || 'ILS';
+  //document.getElementById('f-app').textContent = app + ' · QNH';
+
+}
+
+function buildVatisPanel() {
+  const el = document.getElementById('vatis-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div>
+      <div class="vatis-section-title">Инструкция</div>
+      <div class="vatis-instructions">
+        <ol>
+          <li>Скачай и установи программу vATIS - <a href="https://vatis.app/" target="_blank"><code>здесь</code></a> 
+          <li>Открой vATIS → выбери/импортируй скачанный профиль <code>ULLL</code></li>
+          <li>В меню <code>User Settings</code> введи свои данные</li>
+          <li>Выбери нужный аэропорт во вкладках сверху</li>
+          <li>В нижней строке выбери нужную рабочую ВПП</li>
+          <li>Нажми <code>Connect</code> и наслаждайся результатом</li><br>
+        </ol>
+        <div>P.S. Ты можешь подключить ATIS сразу для всех нужных аэропортов</div>
+      </div>
+    </div>
+    <div style="padding: 0 0 4px">
+        <div class="url-actions">
+          <a href="/static/vATISProfileULLL.json" download="ULLLProfile" class="cbtn cbtn-muted" id="btn-profile" style="text-decoration:none">Скачать профиль</a>
+          <span class="url-note">Импорт: vATIS Profiles - Import</span>
+        </div>
+    </div>`;
+}
+
+let timer = null;
+function autoSave() {
+  updateURLs();
+  clearTimeout(timer); setSt('saving');
+  timer = setTimeout(doSave, 700);
+}
+
+async function doSave() {
+  try {
+    const r = await fetch(`${BASE}/api/config?icao=${curICAO}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildCfg())});
+    setSt(r.ok ? 'saved' : 'error');
+    if (r.ok) setTimeout(() => setSt('idle'), 2500);
+  } catch { setSt('error'); }
+}
+
+async function loadConfig() {
+  // Сбрасываем поля перед загрузкой нового аэропорта
+  ['tl','dep_freq','closed_rwy','closed_twy','remarks','freetext'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  document.getElementById('app').value = 'ILS';
+  document.getElementById('simult').value = '';
+  FLAGS.forEach(f => fs[f.id] = false);
+  buildFlags(); updateURLs();
+
+  try {
+    const r = await fetch(`${BASE}/api/config?icao=${curICAO}`);
+    if (!r.ok) return;
+    const c = await r.json();
+    const sv = (id,v) => { const e=document.getElementById(id); if(e&&v!=null) e.value=v||''; };
+    sv('tl',c.tl); sv('dep_freq',c.dep_freq);
+    sv('closed_rwy',c.closed_rwy); sv('closed_twy',c.closed_twy);
+    sv('remarks',c.remarks); sv('freetext',c.freetext);
+    const as = document.getElementById('app');
+    if (c.app && [...as.options].some(o=>o.value===c.app)) as.value = c.app;
+    document.getElementById('simult').value = c.simult || '';
+    FLAGS.forEach(f => fs[f.id] = !!c[f.id]);
+    buildFlags(); updateURLs(); setSt('idle');
+  } catch {}
+}
+
+function setSt(st) {
+  const dot=document.getElementById('sdot');
+  const txt=document.getElementById('stxt');
+  dot.className='sdot '+(st==='idle'?'':st);
+  txt.className=(st==='idle'?'':st);
+  txt.textContent={saving:'saving...',saved:'saved',error:'error',idle:'sync'}[st];
+  document.getElementById('f-st').textContent = st==='error'?'ERR':'READY';
+}
+
+async function copyURL(type) {
+  const m = {
+    es:{url:eURL(),btn:'btn-es',lbl:'⎘ Копировать'},
+  }[type];
+  try {
+    await navigator.clipboard.writeText(m.url);
+    const b = document.getElementById(m.btn);
+    b.textContent = '✓ Скопировано'; b.classList.add('done');
+    setTimeout(()=>{b.textContent=m.lbl; b.classList.remove('done');}, 2000);
+  } catch {}
+}
+
+buildApNav(); buildFlags(); loadConfig();
+</script>
+</body>
+</html>
