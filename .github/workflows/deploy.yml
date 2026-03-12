@@ -7,7 +7,7 @@ on:
 
 
 env:
-  REGISRTY: ghcr.io
+  REGISTRY: ghcr.io
   IMAGE_NAME: metramak/atis_ulll
 
 jobs:
