@@ -36,7 +36,7 @@ body {
   font-family: var(--mono);
   font-size: 13px;
   min-height: 100vh;
-  /* Subtle noise texture */
+  /* BG TEXTURE */
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
@@ -320,7 +320,7 @@ footer {
 
   <div class="row r3">
 
-    <!-- Заход -->
+    <!-- APP -->
     <div class="card">
       <div class="card-head">
         <span class="card-title">Заход</span>
@@ -360,12 +360,12 @@ footer {
         </div>
         <div class="field">
           <label class="lbl">Частота после вылета</label>
-          <input type="text" id="dep_freq" placeholder="120.300" oninput="autoSave()">
+          <input type="text" id="dep_freq" placeholder="ULLI U/S" oninput="autoSave()">
         </div>
       </div>
     </div>
 
-    <!-- Закрытия -->
+    <!-- NOTAMS -->
     <div class="card">
       <div class="card-head">
         <span class="card-title">Закрытия</span>
@@ -385,7 +385,7 @@ footer {
 
   </div>
 
-  <!-- NOTAM флаги -->
+  <!-- FLAGS -->
   <div class="card">
     <div class="card-head">
       <span class="card-title">Условия</span>
@@ -396,7 +396,7 @@ footer {
     </div>
   </div>
 
-  <!-- Remarks -->
+  <!-- RMK -->
   <div class="row r2">
     <div class="card">
       <div class="card-head"><span class="card-title">Remarks</span></div>
@@ -412,7 +412,7 @@ footer {
     </div>
   </div>
 
-  <!-- URLs с табами -->
+  <!-- URL TABS -->
   <div class="card">
     <div class="card-head">
       <span class="card-title">Ссылки</span>
@@ -435,7 +435,7 @@ footer {
 
       <div class="url-panel active" id="tab-vatis">
         <div class="vatis-body" id="vatis-content">
-          <!-- Контент заполняется ниже -->
+          <!-- CONTENT -->
         </div>
       </div>
 
@@ -461,7 +461,8 @@ const AIRPORTS = [
   { icao:'ULMM', name:'Мурманск',   arr:'13',  dep:'13'  },
   { icao:'UUYY', name:'Сыктывкар', arr:'02',  dep:'02'  },
 ];
-// Флаги только для ULLI
+
+// ONLY ULLI:
 
 let curICAO = 'ULLI';
 
@@ -480,7 +481,7 @@ function buildApNav() {
 
 function switchAirport(icao) {
   curICAO = icao;
-  // Обновляем заголовки
+  // CHANGE HEADERS
   document.getElementById('h-icao').textContent = icao;
   document.getElementById('pg-title').textContent = icao + ' ATIS';
   document.getElementById('f-brand').textContent = icao + ' ATIS';
@@ -604,7 +605,7 @@ async function doSave() {
 }
 
 async function loadConfig() {
-  // Сбрасываем поля перед загрузкой нового аэропорта
+  // NEW CONF LOAD
   ['tl','dep_freq','closed_rwy','closed_twy','remarks','freetext'].forEach(id => {
     const e = document.getElementById(id); if (e) e.value = '';
   });
